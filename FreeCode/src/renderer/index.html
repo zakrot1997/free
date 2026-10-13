@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ar" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FreeCode</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-mode="act">
+    <div id="app">
+      <!-- الشريط الجانبي: المشروع والملفات والمحادثات -->
+      <aside id="rail">
+        <div class="rail-top">
+          <button id="ws-btn" class="ws" title="تغيير المشروع">
+            <span data-icon="folder"></span>
+            <span id="ws-name">اختر مشروعاً</span>
+            <span class="caret" data-icon="chevron" data-size="12"></span>
+          </button>
+          <div id="ws-menu" class="menu" hidden></div>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button class="on" data-tab="files" role="tab">الملفات</button>
+          <button data-tab="chats" role="tab">المحادثات</button>
+        </div>
+
+        <div id="tab-files" class="tabpane"><div id="tree"></div></div>
+        <div id="tab-chats" class="tabpane" hidden>
+          <button id="new-chat" class="btn wide"><span data-icon="plus" data-size="14"></span>محادثة جديدة</button>
+          <div id="sessions"></div>
+        </div>
+
+        <div class="rail-foot">
+          <button id="open-settings" class="ghost"><span data-icon="settings" data-size="15"></span>الإعدادات</button>
+          <span id="conn" class="conn" title=""></span>
+        </div>
+      </aside>
+
+      <!-- المحادثة -->
+      <main id="center">
+        <header id="topbar">
+          <div id="title" dir="auto">محادثة جديدة</div>
+          <button id="toggle-right" class="icon-btn" title="إظهار/إخفاء اللوحة" data-icon="sidebar"></button>
+        </header>
+
+        <div id="chat-scroll"><div id="chat"></div></div>
+
+        <div id="composer-wrap">
+          <div id="popup" class="popup" hidden></div>
+          <div id="composer">
+            <div id="attach-strip" class="attach-strip" hidden></div>
+            <textarea id="input" rows="1" dir="auto" placeholder="اكتب مهمتك…   @ لإرفاق ملف   / للأوامر"></textarea>
+            <div class="c-foot">
+              <div class="seg" id="mode-seg" role="group" aria-label="وضع العمل">
+                <button data-mode="plan" title="قراءة فقط: يحلل ويقترح خطة دون تعديل"><span data-icon="compass" data-size="14"></span>خطة</button>
+                <button data-mode="act" title="تنفيذ: يعدّل الملفات وينفذ الأوامر بعد موافقتك"><span data-icon="bolt" data-size="14"></span>تنفيذ</button>
+              </div>
+              <button id="attach-btn" class="tgl" title="إرفاق صورة (أو الصقها مباشرة بـ Ctrl+V، أو أسقطها على الصندوق)"><span data-icon="image" data-size="14"></span>صورة</button>
+              <input id="attach-input" type="file" accept="image/*" multiple hidden />
+              <button id="voice-btn" class="tgl" title="إدخال صوتي (عربي)"><span data-icon="mic" data-size="14"></span>صوت</button>
+              <button id="tgl-edits" class="tgl" title="موافقة تلقائية على كتابة الملفات وتعديلها">تعديلات تلقائية</button>
+              <button id="tgl-cmds" class="tgl" title="موافقة تلقائية على الأوامر الآمنة (الخطرة تُسأل دائماً)">أوامر تلقائية</button>
+              <span class="grow"></span>
+              <button id="model-chip" class="chip" title="تغيير الموديل"></button>
+              <div id="meter" class="meter" title="السياق المستخدم"><span class="bar"><i></i></span><span class="num">0</span></div>
+              <button id="stop" class="send stop" title="إيقاف (Esc)" hidden data-icon="stop"></button>
+              <button id="send" class="send" title="إرسال (Enter)" data-icon="send"></button>
+            </div>
+          </div>
+          <div class="hint">
+            <span><kbd>Enter</kbd> إرسال</span>
+            <span><kbd>Shift</kbd><kbd>Enter</kbd> سطر جديد</span>
+            <span><kbd>Esc</kbd> إيقاف</span>
+            <span><kbd>Ctrl</kbd><kbd>N</kbd> محادثة جديدة</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- اللوحة اليمنى: الخطة والتعديلات والملف -->
+      <aside id="right">
+        <div class="tabs" role="tablist">
+          <button class="on" data-rtab="task" role="tab">المهمة</button>
+          <button data-rtab="file" role="tab">الملف</button>
+        </div>
+        <div id="rt-task" class="tabpane">
+          <section>
+            <h3>الخطة</h3>
+            <div id="todos" class="empty-note" dir="auto">تظهر هنا خطوات المهام الطويلة أثناء التنفيذ.</div>
+          </section>
+          <section>
+            <h3>الوكلاء المتوازيون <span id="agents-count" class="pill-count" hidden>0</span></h3>
+            <div id="agents-list" class="empty-note" dir="auto">لا وكلاء بعد. اطلب من الوكيل تفويض مهام مستقلة، أو اكتب <code>/agents مهمة</code> لتشغيل وكيل في نسخة معزولة.</div>
+            <div id="agents-actions" class="agents-actions" hidden>
+              <button id="agents-clear" class="btn" type="button"><span data-icon="trash" data-size="13"></span>إزالة المنتهية</button>
+            </div>
+          </section>
+          <section>
+            <h3>التعديلات</h3>
+            <div id="changes" class="empty-note" dir="auto">لم يعدّل الوكيل أي ملف بعد.</div>
+            <button id="undo" class="btn wide" hidden><span data-icon="undo" data-size="14"></span>تراجع عن آخر تعديلات</button>
+          </section>
+        </div>
+        <div id="rt-file" class="tabpane" hidden>
+          <div id="file-head" class="file-head"></div>
+          <div id="file-body" class="file-body"><div class="empty-note" dir="auto">اختر ملفاً من الشجرة لمعاينته.</div></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- الإعدادات -->
+    <div id="modal" class="modal" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="set-title">
+        <div class="sheet-head">
+          <h2 id="set-title">الإعدادات</h2>
+          <button id="close-settings" class="icon-btn" title="إغلاق" data-icon="x"></button>
+        </div>
+
+        <div class="sheet-body">
+          <h4>الاتصال بـ FreeLLMAPI</h4>
+          <label for="s-url">عنوان الخادم</label>
+          <input id="s-url" dir="ltr" placeholder="http://127.0.0.1:31415" spellcheck="false" />
+          <div id="s-endpoint" class="note"></div>
+
+          <label for="s-key">المفتاح الموحد</label>
+          <div class="key-row">
+            <input id="s-key" dir="ltr" type="password" placeholder="freellmapi-…" autocomplete="off" spellcheck="false" />
+            <button id="s-clear-key" class="btn" type="button" title="حذف المفتاح المحفوظ من هذا الجهاز" hidden>حذف المفتاح</button>
+          </div>
+
+          <label for="s-model">الموديل</label>
+          <input id="s-model" dir="ltr" list="model-list" placeholder="freellmapi/auto" spellcheck="false" />
+          <datalist id="model-list"></datalist>
+
+          <div class="row">
+            <button id="s-test" class="btn">اختبار الاتصال</button>
+            <span id="s-status" class="note"></span>
+          </div>
+
+          <h4>الأمان</h4>
+          <label class="check"><input id="s-edits" type="checkbox" /><span>موافقة تلقائية على كتابة الملفات وتعديلها</span></label>
+          <label class="check"><input id="s-cmds" type="checkbox" /><span>موافقة تلقائية على كل الأوامر عدا الخطرة المعروفة مثل <code>rm -rf</code> و<code>sudo</code> (غير موصى به؛ فضّل قواعد الصلاحيات أدناه، فهي أدق)</span></label>
+
+          <h4>قواعد الصلاحيات والـ Hooks</h4>
+          <div class="note">اسمح دائماً بأوامر محددة، واسأل عن غيرها، وامنع ما تريد. الأولوية: <code>deny</code> ثم <code>ask</code> ثم <code>allow</code>. الصيغة <code>run_command(npm test:*)</code> أو <code>write_file|edit_file(src/**)</code>. الأوامر المركّبة (<code>&amp;&amp;</code> و<code>;</code> و<code>|</code>) تُفحص جزءاً جزءاً. الـ Hooks (<code>PreToolUse</code> / <code>PostToolUse</code>) تشغّل أمراً قبل الأداة أو بعدها؛ الخروج بالرمز 2 قبل الأداة يمنعها. يصلك مسار الملف في <code>FREECODE_FILE</code>.</div>
+          <textarea id="s-rules" dir="ltr" spellcheck="false" rows="12"></textarea>
+          <div class="row"><button id="rules-save" class="btn">حفظ القواعد</button><span id="rules-status" class="note"></span></div>
+          <div id="rules-proj" class="note"></div>
+          <div class="row"><button id="rules-trust" class="btn" hidden>الثقة بقواعد هذا المشروع</button></div>
+          <div id="rules-path" class="path-note"></div>
+          <div class="note">قواعد المشروع في <code>.freecode/rules.json</code> بنفس الصيغة. قواعد المنع والسؤال فيها تعمل دائماً، أما السماح التلقائي والـ Hooks فتحتاج موافقتك أولاً لأنها تنفّذ أوامر على جهازك. هذه القواعد ليست sandbox: تحمي من الأخطاء الشائعة لا من شخص يتعمّد الالتفاف.</div>
+
+          <h4>السياق</h4>
+          <label for="s-budget">ميزانية السياق بالتوكنات</label>
+          <input id="s-budget" dir="ltr" type="number" min="4000" step="1000" />
+          <div class="note">عند تجاوزها تُختصر مخرجات الأدوات القديمة، ثم تُلخَّص المحادثة تلقائياً. خفّضها مع الموديلات ذات النافذة الصغيرة.</div>
+
+          <h4>الجودة والتحقق التلقائي</h4>
+          <label class="check"><input id="s-verify" type="checkbox" /><span>بعد كل تعديل: شغّل فحص الأنواع/الـ lint المكتشَف تلقائياً وأعِد الأخطاء للنموذج ليصلحها فوراً</span></label>
+          <label for="s-verify-cmd">أمر فحص مخصّص <span class="note">(اتركه فارغاً للاكتشاف التلقائي)</span></label>
+          <input id="s-verify-cmd" dir="ltr" placeholder="npm run typecheck" spellcheck="false" />
+          <label class="check"><input id="s-map" type="checkbox" /><span>أضف خريطة المستودع (أهم الملفات ورموزها) إلى سياق الوكيل — تفيد في المشاريع الكبيرة</span></label>
+
+          <h4>git</h4>
+          <label class="check"><input id="s-autocommit" type="checkbox" /><span>التزام تلقائي (commit) بعد كل دورة فيها تعديلات، برسالة من طلبك — يسهّل المراجعة والتراجع عبر git</span></label>
+
+          <h4>البحث في الويب</h4>
+          <label for="s-search-provider">المزوّد</label>
+          <select id="s-search-provider">
+            <option value="auto">تلقائي (يستخدم المفتاح إن وُجد، وإلا DuckDuckGo المجاني)</option>
+            <option value="duckduckgo">DuckDuckGo (بلا مفتاح)</option>
+            <option value="tavily">Tavily</option>
+            <option value="brave">Brave Search</option>
+            <option value="serper">Serper (Google)</option>
+          </select>
+          <label for="s-search-key">مفتاح مزوّد البحث <span class="note">(اختياري — يجعل النتائج أدق)</span></label>
+          <div class="key-row">
+            <input id="s-search-key" dir="ltr" type="password" placeholder="اتركه فارغاً للإبقاء على الحالي" autocomplete="off" spellcheck="false" />
+            <button id="s-clear-search-key" class="btn" type="button" title="حذف مفتاح البحث المحفوظ" hidden>حذف المفتاح</button>
+          </div>
+
+          <h4>خوادم MCP</h4>
+          <div id="mcp-list" class="mcp-list"></div>
+          <div class="row"><button id="mcp-reload" class="btn">إعادة التحميل</button></div>
+          <div class="note">MCP يربط الوكيل بأدوات خارجية (قواعد بيانات، متصفح، GitHub…). أضف خوادمك في هذا الملف بصيغة <code>mcpServers</code> كما في Claude Desktop:</div>
+          <div id="mcp-path" class="path-note"></div>
+          <div class="note">ملف <code>.freecode/mcp.json</code> داخل المشروع يعمل أيضاً لكنه يطلب موافقتك أولاً. تحتاج أدوات MCP موافقة قبل كل استدعاء ما لم تضع <code>"autoApprove": true</code> لذلك الخادم.</div>
+
+          <h4>عزل الأوامر (Sandbox)</h4>
+          <label for="s-sb-mode">وضع العزل</label>
+          <select id="s-sb-mode">
+            <option value="off">معطّل — الأوامر تعمل على جهازك مباشرة</option>
+            <option value="auto">تلقائي — استخدم Docker/Podman إن وُجد، وإلا محلياً</option>
+            <option value="docker">Docker دائماً (يرفض التنفيذ إن غاب المحرّك)</option>
+            <option value="podman">Podman دائماً (يرفض التنفيذ إن غاب المحرّك)</option>
+          </select>
+          <label for="s-sb-image">صورة الحاوية</label>
+          <input id="s-sb-image" dir="ltr" spellcheck="false" placeholder="node:22-bookworm-slim" />
+          <label class="check"><input id="s-sb-net" type="checkbox" /><span>اسمح بالشبكة داخل الحاوية (تحتاجها <code>npm install</code>؛ أوقفها للأوامر المجهولة)</span></label>
+          <label for="s-sb-extra">وسائط إضافية لـ <code>docker run</code> <span class="note">(اختياري)</span></label>
+          <input id="s-sb-extra" dir="ltr" spellcheck="false" placeholder="--memory=2g --cpus=2" />
+          <div id="sb-status" class="note"></div>
+          <div class="row">
+            <button id="sb-apply" class="btn">تطبيق العزل</button>
+            <button id="sb-recheck" class="btn">إعادة فحص المحرّكات</button>
+          </div>
+          <div class="note">العزل يجعل الأوامر (وتشغيل خوادم المشروع) تعمل داخل حاوية: المشروع فقط مكشوف في <code>/work</code>، وبقية جهازك خارجها. لو كتبتَ <code>docker</code> صراحةً ولم يوجد المحرّك فالوكيل يرفض التنفيذ ولا ينزل إلى جهازك خفيةً. جرّب أيضاً <code>/sandbox</code> في المحادثة.</div>
+
+          <h4>خوادم اللغة (LSP)</h4>
+          <div id="lsp-list" class="mcp-list"></div>
+          <div class="row">
+            <button id="lsp-reload" class="btn">إعادة الفحص</button>
+            <button id="lsp-trust" class="btn" hidden>الثقة بإعدادات المشروع</button>
+          </div>
+          <div id="lsp-status" class="note"></div>
+          <div id="lsp-path" class="path-note"></div>
+          <div class="note">تخدم خوادم اللغة أدوات <code>code_definition</code> و<code>code_references</code> و<code>code_hover</code> و<code>code_diagnostics</code>: قفزة دقيقة إلى التعريف، ومراجع حقيقية، وتشخيصات من نفس المحرّك الذي يستخدمه محرّرك. إن لم يوجد خادم للغة فالأدوات ترجع إلى بحث نصي بسيط. ملف المشروع <code>.freecode/lsp.json</code> يبقى معطّلاً حتى تضغط «الثقة» لأنه يحدّد أوامر تُنفَّذ على جهازك.</div>
+
+          <h4>جسر IDE (VS Code وأي محرّر آخر)</h4>
+          <label class="check"><input id="s-br-auto" type="checkbox" /><span>شغّل الجسر تلقائياً عند فتح البرنامج</span></label>
+          <label for="s-br-port">المنفذ المحلي</label>
+          <input id="s-br-port" dir="ltr" type="number" min="1024" max="65535" />
+          <div class="row">
+            <button id="br-toggle" class="btn">تشغيل الجسر</button>
+            <button id="br-rotate" class="btn">تدوير الرمز</button>
+          </div>
+          <div id="br-status" class="note"></div>
+          <div id="br-url" class="path-note"></div>
+          <div class="note">يستمع الجسر على <code>127.0.0.1</code> فقط ويتطلب رمزاً في كل طلب، فتستطيع المحرّرات والإضافات (مثل إضافة VS Code في <code>ide/vscode</code>) أن ترسل طلباً وتتابع البث الحي. الرمز سرّي: لا تشاركه، وبإمكانك تدويره في أي لحظة. أعِد فتح نافذة الإعدادات لقراءة أحدث حالة.</div>
+        </div>
+
+        <div class="sheet-foot">
+          <button id="s-save" class="btn primary">حفظ</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
