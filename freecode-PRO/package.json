@@ -1,0 +1,61 @@
+{
+  "name": "freecode",
+  "version": "0.20.0",
+  "description": "وكيل برمجة بالذكاء الاصطناعي (مثل Cline / OpenCode) يعمل على مفتاح FreeLLMAPI",
+  "main": "dist/main/main.js",
+  "bin": {
+    "freecode": "./dist/main/cli.js",
+    "freecode-eval": "./dist/main/evalcli.js",
+    "freecode-mcp": "./dist/main/mcpserver.js"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "esbuild src/renderer/renderer.ts --bundle --outfile=dist/renderer/renderer.js --format=iife --target=chrome124",
+    "build": "npm run build:main && npm run build:renderer && node scripts/copy-assets.mjs",
+    "start": "npm run build && electron .",
+    "selftest": "tsx src/main/selftest.ts",
+    "dist": "npm run build && electron-builder",
+    "cli": "npm run build:main && node dist/main/cli.js",
+    "bench": "tsx src/main/bench.ts",
+    "reliability": "tsx src/main/bench.ts",
+    "eval:models": "tsx src/main/evalcli.ts",
+    "ci": "npm run typecheck && npm run build && npm run selftest && node dist/main/evalcli.js --verify-bank && npm run bench && npm run uitest",
+    "release": "npm run build && node scripts/release.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "mcp": "npm run build:main && node dist/main/mcpserver.js",
+    "sweep:week": "node scripts/weekly-sweep.mjs",
+    "uitest": "node scripts/uitest.mjs"
+  },
+  "build": {
+    "appId": "dev.freecode.app",
+    "productName": "FreeCode",
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

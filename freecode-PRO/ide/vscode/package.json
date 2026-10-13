@@ -1,0 +1,26 @@
+{
+  "name": "freecode-bridge",
+  "displayName": "FreeCode Bridge",
+  "description": "اسأل وكيل FreeCode من داخل VS Code: يرسل مهمتك وملفك المحدد إلى التطبيق، ويعرض الرد والأدوات لحظياً.",
+  "version": "0.1.0",
+  "publisher": "freecode",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other", "Programming Languages"],
+  "activationEvents": ["onCommand:freecode.ask", "onCommand:freecode.askSelection", "onCommand:freecode.status"],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "freecode.ask", "title": "FreeCode: اسأل عن المشروع" },
+      { "command": "freecode.askSelection", "title": "FreeCode: اسأل عن التحديد الحالي" },
+      { "command": "freecode.status", "title": "FreeCode: حالة الجسر" }
+    ],
+    "configuration": {
+      "title": "FreeCode",
+      "properties": {
+        "freecode.bridgeUrl": { "type": "string", "default": "http://127.0.0.1:4177", "description": "عنوان جسر FreeCode (من التطبيق: /bridge)" },
+        "freecode.bridgeToken": { "type": "string", "default": "", "description": "رمز الجسر السري (من التطبيق: الإعدادات → جسر IDE أو /bridge)" },
+        "freecode.allowCommands": { "type": "boolean", "default": false, "description": "السماح بتشغيل أوامر shell العادية من الجسر (الأوامر الخطرة تُرفض دائماً)" }
+      }
+    }
+  }
+}
