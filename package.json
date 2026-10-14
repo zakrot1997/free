@@ -1,0 +1,14 @@
+{
+  "name": "freecode-monorepo",
+  "private": true,
+  "workspaces": [
+    "freecode-PRO",
+    "FreeCode"
+  ],
+  "scripts": {
+    "start": "npm --workspace=freecode-PRO run start",
+    "build": "npm --workspace=freecode-PRO run build",
+    "typecheck": "npm --workspace=freecode-PRO run typecheck",
+    "ci": "npm --workspace=freecode-PRO run ci"
+  }
+}
